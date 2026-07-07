@@ -5,6 +5,7 @@ import android.inputmethodservice.InputMethodService;
 import android.view.Gravity;
 import android.view.View;
 import android.view.inputmethod.InputConnection;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.Space;
@@ -39,7 +40,7 @@ public class UnicodeKeyboardService extends InputMethodService {
         LinearLayout mainLayout = new LinearLayout(this);
         mainLayout.setOrientation(LinearLayout.VERTICAL);
         mainLayout.setBackgroundColor(Color.rgb(235, 235, 235));
-        mainLayout.setPadding(dp(5), dp(4), dp(5), dp(6));
+        mainLayout.setPadding(dp(5), dp(4), dp(5), dp(0));
         mainLayout.setLayoutParams(new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT
@@ -55,11 +56,11 @@ public class UnicodeKeyboardService extends InputMethodService {
         numbersTab.setOnClickListener(v -> showNumbers());
         lettersTab.setOnClickListener(v -> showLetters());
 
-        tabRow.addView(numbersTab, weightedParams(1f, dp(36)));
-        tabRow.addView(lettersTab, weightedParams(1f, dp(36)));
+        tabRow.addView(numbersTab, weightedParams(1f, dp(32)));
+        tabRow.addView(lettersTab, weightedParams(1f, dp(32)));
         mainLayout.addView(tabRow, new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
-                dp(40)
+                dp(36)
         ));
 
         keysContainer = new LinearLayout(this);
@@ -72,6 +73,7 @@ public class UnicodeKeyboardService extends InputMethodService {
         LinearLayout controlRow = new LinearLayout(this);
         controlRow.setOrientation(LinearLayout.HORIZONTAL);
         controlRow.setGravity(Gravity.CENTER);
+        controlRow.setPadding(0, 0, 0, 0);
 
         Button minusButton = createControlButton("-");
         minusButton.setOnClickListener(v -> commitText("-"));
@@ -85,6 +87,10 @@ public class UnicodeKeyboardService extends InputMethodService {
 
         Button spaceButton = createControlButton("Espacio");
         spaceButton.setOnClickListener(v -> commitText(" "));
+        spaceButton.setOnLongClickListener(v -> {
+            showInputMethodSelector();
+            return true;
+        });
 
         Button enterButton = createControlButton("↵");
         enterButton.setOnClickListener(v -> commitText(System.lineSeparator()));
@@ -92,15 +98,21 @@ public class UnicodeKeyboardService extends InputMethodService {
         Button hideButton = createControlButton("▼");
         hideButton.setOnClickListener(v -> requestHideSelf(0));
 
-        controlRow.addView(minusButton, weightedParams(1.0f, dp(46)));
-        controlRow.addView(backspaceButton, weightedParams(1.2f, dp(46)));
-        controlRow.addView(spaceButton, weightedParams(3.6f, dp(46)));
-        controlRow.addView(enterButton, weightedParams(1.2f, dp(46)));
-        controlRow.addView(hideButton, weightedParams(1.0f, dp(46)));
+        controlRow.addView(minusButton, weightedParams(1.0f, dp(44)));
+        controlRow.addView(backspaceButton, weightedParams(1.2f, dp(44)));
+        controlRow.addView(spaceButton, weightedParams(3.8f, dp(44)));
+        controlRow.addView(enterButton, weightedParams(1.2f, dp(44)));
+        controlRow.addView(hideButton, weightedParams(1.0f, dp(44)));
 
         mainLayout.addView(controlRow, new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
-                dp(50)
+                dp(48)
+        ));
+
+        Space bottomSafeArea = new Space(this);
+        mainLayout.addView(bottomSafeArea, new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                dp(34)
         ));
 
         showNumbers();
@@ -135,22 +147,22 @@ public class UnicodeKeyboardService extends InputMethodService {
 
             float sideWeight = sideWeights != null && i < sideWeights.length ? sideWeights[i] : 0f;
             if (sideWeight > 0f) {
-                row.addView(createSpacer(), weightedParams(sideWeight, dp(42)));
+                row.addView(createSpacer(), weightedParams(sideWeight, dp(38)));
             }
 
             for (String keyText : rows[i]) {
                 Button keyButton = createKeyButton(keyText);
                 keyButton.setOnClickListener(v -> commitText(((Button) v).getText().toString()));
-                row.addView(keyButton, weightedParams(1f, dp(42)));
+                row.addView(keyButton, weightedParams(1f, dp(38)));
             }
 
             if (sideWeight > 0f) {
-                row.addView(createSpacer(), weightedParams(sideWeight, dp(42)));
+                row.addView(createSpacer(), weightedParams(sideWeight, dp(38)));
             }
 
             keysContainer.addView(row, new LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.MATCH_PARENT,
-                    dp(46)
+                    dp(42)
             ));
         }
     }
@@ -158,7 +170,7 @@ public class UnicodeKeyboardService extends InputMethodService {
     private Button createKeyButton(String text) {
         Button button = new Button(this);
         button.setText(text);
-        button.setTextSize(19);
+        button.setTextSize(18);
         button.setAllCaps(false);
         button.setGravity(Gravity.CENTER);
         button.setPadding(0, 0, 0, 0);
@@ -231,6 +243,13 @@ public class UnicodeKeyboardService extends InputMethodService {
         InputConnection inputConnection = getCurrentInputConnection();
         if (inputConnection != null) {
             inputConnection.deleteSurroundingText(10, 0);
+        }
+    }
+
+    private void showInputMethodSelector() {
+        Object service = getSystemService(INPUT_METHOD_SERVICE);
+        if (service instanceof InputMethodManager) {
+            ((InputMethodManager) service).showInputMethodPicker();
         }
     }
 
