@@ -6,144 +6,75 @@ import android.view.Gravity;
 import android.view.View;
 import android.view.inputmethod.InputConnection;
 import android.widget.Button;
-import android.widget.GridLayout;
 import android.widget.LinearLayout;
-import android.widget.ScrollView;
-import android.widget.TextView;
+import android.widget.Space;
 
 public class UnicodeKeyboardService extends InputMethodService {
 
-    private static class UnicodeKey {
-        final String label;
-        final String code;
+    private LinearLayout keysContainer;
+    private Button numbersTab;
+    private Button lettersTab;
 
-        UnicodeKey(String label, String code) {
-            this.label = label;
-            this.code = code;
-        }
-    }
-
-    /*
-     * TECLAS PERSONALIZADAS.
-     * Incluye números circulados 1-50, letras circuladas A-Z y el signo menos.
-     */
-    private final UnicodeKey[] unicodeKeys = new UnicodeKey[] {
-            new UnicodeKey("①", "U+2460"),
-            new UnicodeKey("②", "U+2461"),
-            new UnicodeKey("③", "U+2462"),
-            new UnicodeKey("④", "U+2463"),
-            new UnicodeKey("⑤", "U+2464"),
-            new UnicodeKey("⑥", "U+2465"),
-            new UnicodeKey("⑦", "U+2466"),
-            new UnicodeKey("⑧", "U+2467"),
-            new UnicodeKey("⑨", "U+2468"),
-            new UnicodeKey("⑩", "U+2469"),
-            new UnicodeKey("⑪", "U+246A"),
-            new UnicodeKey("⑫", "U+246B"),
-            new UnicodeKey("⑬", "U+246C"),
-            new UnicodeKey("⑭", "U+246D"),
-            new UnicodeKey("⑮", "U+246E"),
-            new UnicodeKey("⑯", "U+246F"),
-            new UnicodeKey("⑰", "U+2470"),
-            new UnicodeKey("⑱", "U+2471"),
-            new UnicodeKey("⑲", "U+2472"),
-            new UnicodeKey("⑳", "U+2473"),
-            new UnicodeKey("㉑", "U+3251"),
-            new UnicodeKey("㉒", "U+3252"),
-            new UnicodeKey("㉓", "U+3253"),
-            new UnicodeKey("㉔", "U+3254"),
-            new UnicodeKey("㉕", "U+3255"),
-            new UnicodeKey("㉖", "U+3256"),
-            new UnicodeKey("㉗", "U+3257"),
-            new UnicodeKey("㉘", "U+3258"),
-            new UnicodeKey("㉙", "U+3259"),
-            new UnicodeKey("㉚", "U+325A"),
-            new UnicodeKey("㉛", "U+325B"),
-            new UnicodeKey("㉜", "U+325C"),
-            new UnicodeKey("㉝", "U+325D"),
-            new UnicodeKey("㉞", "U+325E"),
-            new UnicodeKey("㉟", "U+325F"),
-            new UnicodeKey("㊱", "U+32B1"),
-            new UnicodeKey("㊲", "U+32B2"),
-            new UnicodeKey("㊳", "U+32B3"),
-            new UnicodeKey("㊴", "U+32B4"),
-            new UnicodeKey("㊵", "U+32B5"),
-            new UnicodeKey("㊶", "U+32B6"),
-            new UnicodeKey("㊷", "U+32B7"),
-            new UnicodeKey("㊸", "U+32B8"),
-            new UnicodeKey("㊹", "U+32B9"),
-            new UnicodeKey("㊺", "U+32BA"),
-            new UnicodeKey("㊻", "U+32BB"),
-            new UnicodeKey("㊼", "U+32BC"),
-            new UnicodeKey("㊽", "U+32BD"),
-            new UnicodeKey("㊾", "U+32BE"),
-            new UnicodeKey("㊿", "U+32BF"),
-            new UnicodeKey("Ⓐ", "U+24B6"),
-            new UnicodeKey("Ⓑ", "U+24B7"),
-            new UnicodeKey("Ⓒ", "U+24B8"),
-            new UnicodeKey("Ⓓ", "U+24B9"),
-            new UnicodeKey("Ⓔ", "U+24BA"),
-            new UnicodeKey("Ⓕ", "U+24BB"),
-            new UnicodeKey("Ⓖ", "U+24BC"),
-            new UnicodeKey("Ⓗ", "U+24BD"),
-            new UnicodeKey("Ⓘ", "U+24BE"),
-            new UnicodeKey("Ⓙ", "U+24BF"),
-            new UnicodeKey("Ⓚ", "U+24C0"),
-            new UnicodeKey("Ⓛ", "U+24C1"),
-            new UnicodeKey("Ⓜ", "U+24C2"),
-            new UnicodeKey("Ⓝ", "U+24C3"),
-            new UnicodeKey("Ⓞ", "U+24C4"),
-            new UnicodeKey("Ⓟ", "U+24C5"),
-            new UnicodeKey("Ⓠ", "U+24C6"),
-            new UnicodeKey("Ⓡ", "U+24C7"),
-            new UnicodeKey("Ⓢ", "U+24C8"),
-            new UnicodeKey("Ⓣ", "U+24C9"),
-            new UnicodeKey("Ⓤ", "U+24CA"),
-            new UnicodeKey("Ⓥ", "U+24CB"),
-            new UnicodeKey("Ⓦ", "U+24CC"),
-            new UnicodeKey("Ⓧ", "U+24CD"),
-            new UnicodeKey("Ⓨ", "U+24CE"),
-            new UnicodeKey("Ⓩ", "U+24CF"),
-            new UnicodeKey("-", "U+002D")
+    private final String[][] numberRows = new String[][]{
+            {"①", "②", "③", "④", "⑤", "⑥", "⑦", "⑧", "⑨", "⑩"},
+            {"⑪", "⑫", "⑬", "⑭", "⑮", "⑯", "⑰", "⑱", "⑲", "⑳"},
+            {"㉑", "㉒", "㉓", "㉔", "㉕", "㉖", "㉗", "㉘", "㉙", "㉚"},
+            {"㉛", "㉜", "㉝", "㉞", "㉟", "㊱", "㊲", "㊳", "㊴", "㊵"},
+            {"㊶", "㊷", "㊸", "㊹", "㊺", "㊻", "㊼", "㊽", "㊾", "㊿"}
     };
+
+    private final String[][] letterRows = new String[][]{
+            {"Ⓠ", "Ⓦ", "Ⓔ", "Ⓡ", "Ⓣ", "Ⓨ", "Ⓤ", "Ⓘ", "Ⓞ", "Ⓟ"},
+            {"Ⓐ", "Ⓢ", "Ⓓ", "Ⓕ", "Ⓖ", "Ⓗ", "Ⓙ", "Ⓚ", "Ⓛ"},
+            {"Ⓩ", "Ⓧ", "Ⓒ", "Ⓥ", "Ⓑ", "Ⓝ", "Ⓜ"}
+    };
+
+    @Override
+    public boolean onEvaluateFullscreenMode() {
+        return false;
+    }
 
     @Override
     public View onCreateInputView() {
         LinearLayout mainLayout = new LinearLayout(this);
         mainLayout.setOrientation(LinearLayout.VERTICAL);
-        mainLayout.setBackgroundColor(Color.rgb(242, 242, 242));
-        mainLayout.setPadding(dp(6), dp(6), dp(6), dp(6));
-
-        TextView title = new TextView(this);
-        title.setText("Teclado Unicode");
-        title.setTextSize(14);
-        title.setTextColor(Color.DKGRAY);
-        title.setGravity(Gravity.CENTER);
-        mainLayout.addView(title, new LinearLayout.LayoutParams(
+        mainLayout.setBackgroundColor(Color.rgb(235, 235, 235));
+        mainLayout.setPadding(dp(5), dp(4), dp(5), dp(6));
+        mainLayout.setLayoutParams(new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
-                dp(26)
+                LinearLayout.LayoutParams.WRAP_CONTENT
         ));
 
-        ScrollView scrollView = new ScrollView(this);
-        GridLayout grid = new GridLayout(this);
-        grid.setColumnCount(5);
+        LinearLayout tabRow = new LinearLayout(this);
+        tabRow.setOrientation(LinearLayout.HORIZONTAL);
+        tabRow.setGravity(Gravity.CENTER);
 
-        for (UnicodeKey key : unicodeKeys) {
-            Button button = createKeyButton(key.label);
-            button.setOnClickListener(v -> commitUnicode(key.code));
-            grid.addView(button);
-        }
+        numbersTab = createTabButton("Números");
+        lettersTab = createTabButton("Letras");
 
-        scrollView.addView(grid);
-        mainLayout.addView(scrollView, new LinearLayout.LayoutParams(
+        numbersTab.setOnClickListener(v -> showNumbers());
+        lettersTab.setOnClickListener(v -> showLetters());
+
+        tabRow.addView(numbersTab, weightedParams(1f, dp(36)));
+        tabRow.addView(lettersTab, weightedParams(1f, dp(36)));
+        mainLayout.addView(tabRow, new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
-                0,
-                1f
+                dp(40)
+        ));
+
+        keysContainer = new LinearLayout(this);
+        keysContainer.setOrientation(LinearLayout.VERTICAL);
+        mainLayout.addView(keysContainer, new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
         ));
 
         LinearLayout controlRow = new LinearLayout(this);
         controlRow.setOrientation(LinearLayout.HORIZONTAL);
         controlRow.setGravity(Gravity.CENTER);
+
+        Button minusButton = createControlButton("-");
+        minusButton.setOnClickListener(v -> commitText("-"));
 
         Button backspaceButton = createControlButton("⌫");
         backspaceButton.setOnClickListener(v -> deleteOneCharacter());
@@ -158,59 +89,128 @@ public class UnicodeKeyboardService extends InputMethodService {
         Button enterButton = createControlButton("↵");
         enterButton.setOnClickListener(v -> commitText(System.lineSeparator()));
 
-        controlRow.addView(backspaceButton);
-        controlRow.addView(spaceButton);
-        controlRow.addView(enterButton);
+        Button hideButton = createControlButton("▼");
+        hideButton.setOnClickListener(v -> requestHideSelf(0));
+
+        controlRow.addView(minusButton, weightedParams(1.0f, dp(46)));
+        controlRow.addView(backspaceButton, weightedParams(1.2f, dp(46)));
+        controlRow.addView(spaceButton, weightedParams(3.6f, dp(46)));
+        controlRow.addView(enterButton, weightedParams(1.2f, dp(46)));
+        controlRow.addView(hideButton, weightedParams(1.0f, dp(46)));
 
         mainLayout.addView(controlRow, new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
-                dp(58)
+                dp(50)
         ));
 
+        showNumbers();
         return mainLayout;
+    }
+
+    private void showNumbers() {
+        setTabState(true);
+        buildRows(numberRows, new float[]{0f, 0f, 0f, 0f, 0f});
+    }
+
+    private void showLetters() {
+        setTabState(false);
+        buildRows(letterRows, new float[]{0f, 0.5f, 1.5f});
+    }
+
+    private void setTabState(boolean numbersSelected) {
+        if (numbersTab == null || lettersTab == null) {
+            return;
+        }
+        numbersTab.setEnabled(!numbersSelected);
+        lettersTab.setEnabled(numbersSelected);
+    }
+
+    private void buildRows(String[][] rows, float[] sideWeights) {
+        keysContainer.removeAllViews();
+
+        for (int i = 0; i < rows.length; i++) {
+            LinearLayout row = new LinearLayout(this);
+            row.setOrientation(LinearLayout.HORIZONTAL);
+            row.setGravity(Gravity.CENTER);
+
+            float sideWeight = sideWeights != null && i < sideWeights.length ? sideWeights[i] : 0f;
+            if (sideWeight > 0f) {
+                row.addView(createSpacer(), weightedParams(sideWeight, dp(42)));
+            }
+
+            for (String keyText : rows[i]) {
+                Button keyButton = createKeyButton(keyText);
+                keyButton.setOnClickListener(v -> commitText(((Button) v).getText().toString()));
+                row.addView(keyButton, weightedParams(1f, dp(42)));
+            }
+
+            if (sideWeight > 0f) {
+                row.addView(createSpacer(), weightedParams(sideWeight, dp(42)));
+            }
+
+            keysContainer.addView(row, new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    dp(46)
+            ));
+        }
     }
 
     private Button createKeyButton(String text) {
         Button button = new Button(this);
         button.setText(text);
-        button.setTextSize(22);
+        button.setTextSize(19);
         button.setAllCaps(false);
         button.setGravity(Gravity.CENTER);
-        button.setPadding(dp(2), dp(2), dp(2), dp(2));
-
-        GridLayout.LayoutParams params = new GridLayout.LayoutParams();
-        params.width = dp(68);
-        params.height = dp(58);
-        params.setMargins(dp(3), dp(3), dp(3), dp(3));
-        button.setLayoutParams(params);
+        button.setPadding(0, 0, 0, 0);
+        button.setMinHeight(0);
+        button.setMinimumHeight(0);
+        button.setMinWidth(0);
+        button.setMinimumWidth(0);
         return button;
     }
 
     private Button createControlButton(String text) {
         Button button = new Button(this);
         button.setText(text);
-        button.setTextSize(16);
+        button.setTextSize(15);
         button.setAllCaps(false);
         button.setGravity(Gravity.CENTER);
-        button.setPadding(dp(2), dp(2), dp(2), dp(2));
-
-        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
-                0,
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                1f
-        );
-        params.setMargins(dp(3), dp(3), dp(3), dp(3));
-        button.setLayoutParams(params);
+        button.setPadding(0, 0, 0, 0);
+        button.setMinHeight(0);
+        button.setMinimumHeight(0);
+        button.setMinWidth(0);
+        button.setMinimumWidth(0);
         return button;
     }
 
-    private void commitUnicode(String code) {
-        try {
-            String unicodeText = unicodeCodeToString(code);
-            commitText(unicodeText);
-        } catch (Exception ignored) {
-            // Si un código está mal escrito, no inserta nada.
-        }
+    private Button createTabButton(String text) {
+        Button button = new Button(this);
+        button.setText(text);
+        button.setTextSize(14);
+        button.setAllCaps(false);
+        button.setGravity(Gravity.CENTER);
+        button.setPadding(0, 0, 0, 0);
+        button.setMinHeight(0);
+        button.setMinimumHeight(0);
+        button.setMinWidth(0);
+        button.setMinimumWidth(0);
+        return button;
+    }
+
+    private Space createSpacer() {
+        Space space = new Space(this);
+        space.setVisibility(View.INVISIBLE);
+        return space;
+    }
+
+    private LinearLayout.LayoutParams weightedParams(float weight, int height) {
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+                0,
+                height,
+                weight
+        );
+        params.setMargins(dp(2), dp(2), dp(2), dp(2));
+        return params;
     }
 
     private void commitText(String text) {
@@ -232,15 +232,6 @@ public class UnicodeKeyboardService extends InputMethodService {
         if (inputConnection != null) {
             inputConnection.deleteSurroundingText(10, 0);
         }
-    }
-
-    private String unicodeCodeToString(String code) {
-        String cleanCode = code
-                .replace("U+", "")
-                .replace("u+", "")
-                .trim();
-        int codePoint = Integer.parseInt(cleanCode, 16);
-        return new String(Character.toChars(codePoint));
     }
 
     private int dp(int value) {
