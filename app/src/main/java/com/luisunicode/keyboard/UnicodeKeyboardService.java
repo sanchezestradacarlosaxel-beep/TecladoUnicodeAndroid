@@ -156,8 +156,7 @@ public class UnicodeKeyboardService extends InputMethodService {
         spaceButton.setOnClickListener(v -> commitText(" "));
 
         Button enterButton = createControlButton("↵");
-        enterButton.setOnClickListener(v -> commitText("
-"));
+enterButton.setOnClickListener(v -> commitText(System.lineSeparator()));
 
         controlRow.addView(backspaceButton);
         controlRow.addView(spaceButton);
